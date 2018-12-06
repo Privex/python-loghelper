@@ -3,3 +3,9 @@
 __pycache__
 .idea
 .vscode
+
+# PyPi build files
+build
+dist
+privex_loghelper.egg-info
+
