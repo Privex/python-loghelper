@@ -34,7 +34,13 @@ Please make sure any changes you make meet these basic requirements:
 
 # Installation
 
-### Manual install from Git
+### Download and install from PyPi using pip
+
+```sh
+pip3 install privex-loghelper
+```
+
+### (Alternative) Manual install from Git
 
 **Option 1 - Use pip to install straight from Github**
 
