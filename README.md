@@ -11,7 +11,8 @@ as well as for use in projects developed at [Privex Inc.](https://github.com/Pri
 
 # License
 
-**Python Log Helper** was created by [Privex Inc. of Belize City](https://www.privex.io), and licensed under the MIT License. See the file [LICENSE](LICENSE) for the license text.
+**Python Log Helper** was created by [Privex Inc. of Belize City](https://www.privex.io), and licensed under the MIT License. 
+See the file [LICENSE](https://github.com/Privex/python-loghelper/blob/master/LICENSE) for the license text.
 
 **TL;DR; license:**
 
@@ -36,8 +37,16 @@ Please make sure any changes you make meet these basic requirements:
 
 ### Download and install from PyPi using pip
 
+**Python 3**
+
 ```sh
 pip3 install privex-loghelper
+```
+
+**Python 2**
+
+```sh
+pip install privex-loghelper
 ```
 
 ### (Alternative) Manual install from Git
@@ -66,10 +75,12 @@ python3 setup.py install
 
 # Usage
 
-The code is very well documented, you can find out all usage documentation in [LogHelper.py](privex/loghelper/LogHelper.py).
+The code is very well documented, you can find out all usage documentation in [LogHelper.py](https://github.com/Privex/python-loghelper/blob/master/privex/loghelper/LogHelper.py).
 
 All functions are type annotated, with detailed pydoc block comments. If you're using a Python optimised IDE such as [PyCharm](https://www.jetbrains.com/pycharm/) it should
 offer code completion and help when using the package.
+
+![Screenshot of PyCharm code completion and docs](https://i.imgur.com/T2a0aTm.png)
 
 ### Basic usage
 

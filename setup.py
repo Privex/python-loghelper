@@ -27,7 +27,7 @@ with open("README.md", "r") as fh:
 setup(
     name='privex_loghelper',
 
-    version='1.0.0',
+    version='1.0.1',
 
     description='Small dependency-free class to make logging easier',
     long_description=long_description,
