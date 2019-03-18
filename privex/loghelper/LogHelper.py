@@ -1,22 +1,35 @@
 """
-Copyright 2018     Privex Inc.
++===================================================+
+|                 © 2019 Privex Inc.                |
+|               https://www.privex.io               |
++===================================================+
+|                                                   |
+|        Python Log Helper library                  |
+|        License: X11/MIT                           |
+|                                                   |
+|        Core Developer(s):                         |
+|                                                   |
+|          (+)  Chris (@someguy123) [Privex]        |
+|                                                   |
++===================================================+
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of 
-this software and associated documentation files (the "Software"), to deal in 
-the Software without restriction, including without limitation the rights to use, 
-copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the 
-Software, and to permit persons to whom the Software is furnished to do so, 
-subject to the following conditions:
+Copyright (c) 2019    Privex Inc. ( https://www.privex.io )
 
-The above copyright notice and this permission notice shall be included in all 
-copies or substantial portions of the Software.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
+files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
+modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the 
+Software is furnished to do so, subject to the following conditions:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of 
+the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
+OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Except as contained in this notice, the name(s) of the above copyright holders shall not be used in advertising or 
+otherwise to promote the sale, use or other dealings in this Software without prior written authorization.
 """
 
 import sys
@@ -34,7 +47,7 @@ class LogHelper:
 
     :author:    Someguy123 (Chris) @ Privex Inc.
                 https://github.com/Someguy123 - https://github.com/Privex
-    :license:   MIT
+    :license:   X11 / MIT
     :source:    https://github.com/Privex/python-loghelper
     """
     def __init__(self, logger_name = '', level = logging.DEBUG, handler_level = logging.INFO, formatter = None):
@@ -69,6 +82,7 @@ class LogHelper:
         self.handler_level = handler_level
         self.level = level
         self.logger_name = logger_name
+        self.handlers = []
 
         # Sensible default formatter if you don't pass one
         # Messages are formatted like this:
@@ -92,6 +106,31 @@ class LogHelper:
         """
         return self.log
 
+    def copy_logger(self, logger_name=None):
+        # type: (str) -> logging.Logger
+        """
+        Copies your formatter/level settings, and any added handlers to another logger instance name.
+        Useful for applying your logging configuration to the loggers used by other packages.
+
+        Removes any existing handlers to avoid risk of duplicate logs.
+
+            Set up LogHelper for instance myapp.someclass
+            >>> lh = LogHelper('myapp.someclass', handler_level=logging.DEBUG)
+            >>> lh.add_file_handler('myapp.log')
+            Copy logger settings to instance somepackage.someclass
+            >>> lh.copy_logger('somepackage.someclass')
+
+        :param logger_name: The logger name to copy your settings to. If None, copies to root logger.
+        :return logging.Logger: Returns an instance of `logger_name` with the same settings as this class.
+        """
+        l = logging.getLogger(logger_name)
+        l.setLevel(self.level)
+        # Clear any existing handlers, to avoid duplicate logs
+        l.handlers = []
+        for h in self.handlers:
+            l.addHandler(h)
+        return l
+
     def add_file_handler(self, file_location, level=None, formatter=None):
         # type: (str, int, logging.Formatter) -> logging.FileHandler
         """
@@ -111,7 +150,7 @@ class LogHelper:
         handler = logging.FileHandler(file_location)
         handler.setLevel(self.handler_level if level is None else level)
         handler.setFormatter(self.formatter if formatter is None else formatter)
-
+        self.handlers.append(handler)
         self.log.addHandler(handler)
         return handler
 
@@ -147,7 +186,7 @@ class LogHelper:
 
         handler.setLevel(self.handler_level if level is None else level)
         handler.setFormatter(self.formatter if formatter is None else formatter)
-
+        self.handlers.append(handler)
         self.log.addHandler(handler)
         return handler
 
@@ -164,6 +203,7 @@ class LogHelper:
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(self.handler_level if level is None else level)
         handler.setFormatter(self.formatter if formatter is None else formatter)
+        self.handlers.append(handler)
         self.log.addHandler(handler)
         return handler
 

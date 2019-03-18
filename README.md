@@ -11,7 +11,7 @@ as well as for use in projects developed at [Privex Inc.](https://github.com/Pri
 
 # License
 
-**Python Log Helper** was created by [Privex Inc. of Belize City](https://www.privex.io), and licensed under the MIT License. 
+**Python Log Helper** was created by [Privex Inc. of Belize City](https://www.privex.io), and licensed under the X11/MIT License. 
 See the file [LICENSE](https://github.com/Privex/python-loghelper/blob/master/LICENSE) for the license text.
 
 **TL;DR; license:**
@@ -103,6 +103,20 @@ After running the above, `test.log` should contain:
 
 ```
 2018-12-05 22:05:18,915 root         INFO     hello world
+```
+
+### Copying your logging config to other logger names
+
+Third party packages often use their own logging instance names. To make it easy for you to copy your settings
+to other instances, you can use the `copy_logger(name)` method.
+
+```python
+# Set up logging for your app, log anything >=INFO
+lh = LogHelper('myapp', handler_level=logging.INFO)
+# Log to a file called test.log in the current directory (note: absolute path is better)
+lh.add_file_handler('test.log')
+# Now copy your logging level, handlers, and formatting to the logger privex.jsonrpc
+lh.copy_logger('privex.jsonrpc')
 ```
 
 ### Splitting error and debug logs into different files
