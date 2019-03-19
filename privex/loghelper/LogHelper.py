@@ -50,7 +50,7 @@ class LogHelper:
     :license:   X11 / MIT
     :source:    https://github.com/Privex/python-loghelper
     """
-    def __init__(self, logger_name = '', level = logging.DEBUG, handler_level = logging.INFO, formatter = None):
+    def __init__(self, logger_name = None, level = logging.DEBUG, handler_level = logging.INFO, formatter = None):
         # type: (str, int, int, logging.Formatter) -> None
         """
         Initialises the class with sensible default values, including a default formatter, a global log level
@@ -73,7 +73,7 @@ class LogHelper:
 
                 2018-12-05 14:50:41,902 myapp.someclass    INFO    hello world
 
-        :param logger_name:     Name of the logger to use (used by getLogger).
+        :param logger_name:     Name of the logger to use (used by getLogger). If not specified, or None, will use root logger.
         :param level:           Global logging level. This must be more verbose than your handlers, or they
                                 will be silenced.
         :param handler_level:   Default logging level for added handlers. Can be overridden from the methods.
@@ -106,8 +106,8 @@ class LogHelper:
         """
         return self.log
 
-    def copy_logger(self, logger_name=None):
-        # type: (str) -> logging.Logger
+    def copy_logger(self, *logger_names):
+        # type: (*str) -> logging.Logger
         """
         Copies your formatter/level settings, and any added handlers to another logger instance name.
         Useful for applying your logging configuration to the loggers used by other packages.
@@ -117,22 +117,34 @@ class LogHelper:
             Set up LogHelper for instance myapp.someclass
             >>> lh = LogHelper('myapp.someclass', handler_level=logging.DEBUG)
             >>> lh.add_file_handler('myapp.log')
-            Copy logger settings to instance somepackage.someclass
-            >>> lh.copy_logger('somepackage.someclass')
+            Copy logger settings to instance somepackage.someclass and instance otherpackage
+            >>> lh.copy_logger('somepackage.someclass', 'otherpackage')
 
-        :param logger_name: The logger name to copy your settings to. If None, copies to root logger.
+        :param logger_names: One or more logger names (as positional args) to copy your settings to. 
+                             If None, copies to root logger.
         :return logging.Logger: Returns an instance of `logger_name` with the same settings as this class.
+                                If multiple names are passed, will return the last logger instance.
         """
-        l = logging.getLogger(logger_name)
-        l.setLevel(self.level)
-        # Clear any existing handlers, to avoid duplicate logs
-        l.handlers = []
-        for h in self.handlers:
-            l.addHandler(h)
+        handlermap = {    # map handler list names to methods, for easy execution in loop
+            'file':       self.add_file_handler,
+            'console':    self.add_console_handler,
+            'timed_file': self.add_timed_file_handler
+        }
+        l = None
+        logger_names = [None] if len(logger_names) == 0 else logger_names
+        for ln in logger_names:
+            l = logging.getLogger(ln)
+            l.setLevel(self.level)
+            # Clear any existing handlers, to avoid duplicate logs
+            l.handlers = []
+            # Now re-generate the handlers using the add_xxx methods, as simply running add_handler with the
+            # previously generated handler instances results in duplicate logging.
+            for hname, hkwargs in self.handlers:
+                handlermap[hname](**hkwargs, logger=l)
         return l
 
-    def add_file_handler(self, file_location, level=None, formatter=None):
-        # type: (str, int, logging.Formatter) -> logging.FileHandler
+    def add_file_handler(self, file_location, level=None, formatter=None, logger=None):
+        # type: (str, int, logging.Formatter, logging.Logger) -> logging.FileHandler
         """
         Outputs logs matching the given `level` using `formatter` into the file `file_location`.
 
@@ -141,22 +153,26 @@ class LogHelper:
         Creates a FileHandler using the given parameters, uses sensible defaults for level/formatter if no
         parameters were passed, then adds the handler to `self.log`.
 
-        :param file_location:   Relative or (ideally) absolute location to log file to save to.
-        :param level:           Logging level for the handler, e.g. logging.INFO. Defaults to self.handler_level
-        :param formatter:       For adjusting the logging format of this handler. Defaults to self.formatter.
-                                An instance of :py:class:`logging.Formatter`
-        :return:                The newly generated instance of :py:class:`logging.FileHandler`
+        :param str file_location:   Relative or (ideally) absolute location to log file to save to.
+        :param int level:           Logging level for the handler, e.g. logging.INFO. Defaults to self.handler_level
+        :param logging.Formatter formatter: For adjusting the logging format of this handler. Defaults to self.formatter.
+        :param    logging.Logger    logger:  Optionally, specify a logger instance to add to, instead of self.log
+        :return logging.FileHandler:                The newly generated instance of :py:class:`logging.FileHandler`
         """
+        log = self.log if logger is None else logger
         handler = logging.FileHandler(file_location)
         handler.setLevel(self.handler_level if level is None else level)
         handler.setFormatter(self.formatter if formatter is None else formatter)
-        self.handlers.append(handler)
-        self.log.addHandler(handler)
+        if logger is None:
+            self.handlers.append(
+                ('file', dict(file_location=file_location,level=level,formatter=formatter),)
+            )
+        log.addHandler(handler)
         return handler
 
     def add_timed_file_handler(self, file_location, when='D', interval=1, backups=14, at_time=None,
-                               level=None, formatter=None):
-        # type: (str, str, int, int, datetime.time, int, logging.Formatter) -> TimedRotatingFileHandler
+                               level=None, formatter=None, logger=None):
+        # type: (str, str, int, int, datetime.time, int, logging.Formatter, logging.Logger) -> TimedRotatingFileHandler
         """
         Outputs logs matching the given `level` using `formatter` into the file `file_location`. Rotates log every
         x intervals, (`when` sets type, `interval` sets count). Removes logs older than `backups` intervals.
@@ -166,45 +182,57 @@ class LogHelper:
         Creates a TimedRotatingFileHandler using the given parameters, uses sensible defaults for level/formatter if no
         parameters were passed, then adds the handler to `self.log`.
 
-        :param file_location:   Relative or (ideally) absolute location to log file to save to.
+        :param  str file_location:   Relative or (ideally) absolute location to log file to save to.
 
-        :param when:            String value defining the type of interval, e.g. D for days, S for seconds
-                        More info: https://docs.python.org/3.7/library/logging.handlers.html#timedrotatingfilehandler
+        :param  str          when:   String value defining the type of interval, e.g. D for days, S for seconds
+                                     More info: https://docs.python.org/3.7/library/logging.handlers.html#timedrotatingfilehandler
 
-        :param interval:        How many `when`'s before rotating the log? (default 1 day)
-        :param backups:         How many intervals should be kept before deletion? (default 14 days)
-        :param at_time:         Only used for `midnight` and `W0-W6` interval types. Instance of :py:func:`datetime.time`
+        :param  int  interval:   How many `when`'s before rotating the log? (default 1 day)
+        :param  int   backups:   How many intervals should be kept before deletion? (default 14 days)
+        :param  datetime.time at_time:   Only used for `midnight` and `W0-W6` interval types. Instance of :py:func:`datetime.time`
 
-        :param level:           Logging level for the handler, e.g. logging.INFO. Defaults to self.handler_level
-        :param formatter:       For adjusting the logging format of this handler. Defaults to self.formatter.
-                                An instance of :py:class:`logging.Formatter`
-        :return:                The newly generated instance of :py:class:`logging.handlers.TimedRotatingFileHandler`
+        :param  int     level:   Logging level for the handler, e.g. logging.INFO. Defaults to self.handler_level
+        :param  logging.Formatter formatter:  For adjusting the logging format of this handler. Defaults to self.formatter.
+        :param    logging.Logger    logger:  Optionally, specify a logger instance to add to, instead of self.log
+        :return logging.handlers.TimedRotatingFileHandler: The newly generated handler instance
         """
+        log = self.log if logger is None else logger
         handler = TimedRotatingFileHandler(
             file_location, when=when, interval=interval, backupCount=backups, atTime=at_time
         )
 
         handler.setLevel(self.handler_level if level is None else level)
         handler.setFormatter(self.formatter if formatter is None else formatter)
-        self.handlers.append(handler)
-        self.log.addHandler(handler)
+        if logger is None:
+            self.handlers.append(
+                ('timed_file', dict(
+                    file_location=file_location, when=when, interval=interval, 
+                    backups=backups, at_time=at_time, level=level,formatter=formatter
+                ),)
+            )
+        log.addHandler(handler)
         return handler
 
-    def add_console_handler(self, level=None, formatter=None):
-        # type: (int, logging.Formatter) -> logging.StreamHandler
+    def add_console_handler(self, level=None, formatter=None, logger=None):
+        # type: (int, logging.Formatter, logging.Logger) -> logging.StreamHandler
         """
         Outputs logs matching the given `level` using `formatter` into standard output (console).
 
-        :param level:           Logging level for the handler, e.g. logging.INFO. Defaults to self.handler_level
-        :param formatter:       For adjusting the logging format of this handler. Defaults to self.formatter.
-                                An instance of :py:class:`logging.Formatter`
-        :return:                The newly generated instance of :py:class:`logging.FileHandler`
+        :param               int     level:  Logging level for the handler, e.g. logging.INFO. Defaults to self.handler_level
+        :param logging.Formatter formatter:  For adjusting the logging format of this handler. Defaults to self.formatter.
+        :param    logging.Logger    logger:  Optionally, specify a logger instance to add to, instead of self.log
+
+        :return        logging.FileHandler:  The newly generated instance of :py:class:`logging.FileHandler`
         """
+        log = self.log if logger is None else logger
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(self.handler_level if level is None else level)
         handler.setFormatter(self.formatter if formatter is None else formatter)
-        self.handlers.append(handler)
-        self.log.addHandler(handler)
+        if logger is None:
+            self.handlers.append(
+                ('console', dict(level=level,formatter=formatter),)
+            )
+        log.addHandler(handler)
         return handler
 
 

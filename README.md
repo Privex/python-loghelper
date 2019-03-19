@@ -90,7 +90,10 @@ file handler to send log output to a file.
 ```python
 # Import the class
 from privex.loghelper import LogHelper
-lh = LogHelper()
+# The first param is logger_name - a hierarchical dot-separated name to organise loggers.
+# If it's not specified, or is None, it will use the root logger (which will affect some
+# third-party packages that don't have their own logging settings)
+lh = LogHelper('mylogger')
 # Log to a file called test.log in the current directory
 lh.add_file_handler('test.log')
 # Grab the logger instance
@@ -117,7 +120,16 @@ lh = LogHelper('myapp', handler_level=logging.INFO)
 lh.add_file_handler('test.log')
 # Now copy your logging level, handlers, and formatting to the logger privex.jsonrpc
 lh.copy_logger('privex.jsonrpc')
+# You can specify multiple logger names as positional arguments. All specified loggers will
+# have their handlers replaced with yours, and have their logging level set to match.
+lh.copy_logger('example.app', 'otherexample')
 ```
+
+After copying your settings onto a named logger, all logging using that logger should use your specified handlers,
+and your log level.
+
+This covers modules that access the logger via `logging.getLogger('loggername')`, as well as via Python Logging wrappers 
+such as privex-loghelper.
 
 ### Splitting error and debug logs into different files
 
@@ -179,8 +191,6 @@ As you can see, the `debug.log` saved all of the messages, while `error.log` onl
 You can also have painless log rotation, without the need for something like `logrotated`.
 
 The LogHelper class has a function `add_timed_file_handler` which wraps `logging.handler.TimedRotatingFileHandler`.
-
-
 
 Simply specify the type of interval (`when`) to rotate with, how often it should rotate (`interval`), and how many intervals you
 would like to keep before deleting older ones (`backups`). Set `backups` to 0 if you don't want it to delete older logs.
