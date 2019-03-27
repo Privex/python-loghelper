@@ -50,7 +50,7 @@ class LogHelper:
     :license:   X11 / MIT
     :source:    https://github.com/Privex/python-loghelper
     """
-    def __init__(self, logger_name = None, level = logging.DEBUG, handler_level = logging.INFO, formatter = None):
+    def __init__(self, logger_name = None, level = logging.DEBUG, handler_level = logging.INFO, formatter = None, clear_handlers=True):
         # type: (str, int, int, logging.Formatter) -> None
         """
         Initialises the class with sensible default values, including a default formatter, a global log level
@@ -78,6 +78,7 @@ class LogHelper:
                                 will be silenced.
         :param handler_level:   Default logging level for added handlers. Can be overridden from the methods.
         :param formatter:       An instance of :py:class:`logging.Formatter`
+        :param clear_handlers:  If True, existing handlers will be cleared before setting up this logger. (default: True)
         """
         self.handler_level = handler_level
         self.level = level
@@ -95,6 +96,8 @@ class LogHelper:
             self.formatter = formatter
 
         self.log = logging.getLogger(logger_name)
+        if clear_handlers:
+            self.log.handlers.clear()
         self.log.setLevel(self.level)
 
     def get_logger(self):
@@ -193,10 +196,12 @@ class LogHelper:
 
         :param  int     level:   Logging level for the handler, e.g. logging.INFO. Defaults to self.handler_level
         :param  logging.Formatter formatter:  For adjusting the logging format of this handler. Defaults to self.formatter.
-        :param    logging.Logger    logger:  Optionally, specify a logger instance to add to, instead of self.log
+        :param  logging.Logger    logger:     Optionally, specify a logger instance to add to, instead of self.log
         :return logging.handlers.TimedRotatingFileHandler: The newly generated handler instance
         """
         log = self.log if logger is None else logger
+        interval = int(interval)
+        backups = int(backups)
         handler = TimedRotatingFileHandler(
             file_location, when=when, interval=interval, backupCount=backups, atTime=at_time
         )

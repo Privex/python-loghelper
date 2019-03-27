@@ -1,4 +1,4 @@
-*.log
+*.log*
 *.swp
 __pycache__
 .idea
