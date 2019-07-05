@@ -97,7 +97,13 @@ class LogHelper:
 
         self.log = logging.getLogger(logger_name)
         if clear_handlers:
-            self.log.handlers.clear()
+            l = self.log
+            # Clear any existing handlers, to avoid duplicate logs
+            for h in l.handlers:
+                l.removeHandler(h)
+            # Ensure propagation is enabled, and the logger itself is enabled
+            l.propagate = True
+            l.disabled = False
         self.log.setLevel(self.level)
 
     def get_logger(self):
@@ -139,7 +145,11 @@ class LogHelper:
             l = logging.getLogger(ln)
             l.setLevel(self.level)
             # Clear any existing handlers, to avoid duplicate logs
-            l.handlers = []
+            for h in l.handlers:
+                l.removeHandler(h)
+            # Ensure propagation is enabled, and the logger itself is enabled
+            l.propagate = True
+            l.disabled = False
             # Now re-generate the handlers using the add_xxx methods, as simply running add_handler with the
             # previously generated handler instances results in duplicate logging.
             for hname, hkwargs in self.handlers:
