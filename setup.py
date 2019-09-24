@@ -21,6 +21,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from setuptools import setup, find_packages
+from privex.loghelper import VERSION
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -28,7 +29,7 @@ with open("README.md", "r") as fh:
 setup(
     name='privex_loghelper',
 
-    version='1.0.5',
+    version=VERSION,
 
     description='Small dependency-free class to make logging easier',
     long_description=long_description,
@@ -42,6 +43,10 @@ setup(
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 2",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",

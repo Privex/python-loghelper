@@ -228,24 +228,25 @@ class LogHelper:
         log.addHandler(handler)
         return handler
 
-    def add_console_handler(self, level=None, formatter=None, logger=None):
+    def add_console_handler(self, level=None, formatter=None, stream=sys.stdout, logger=None):
         # type: (int, logging.Formatter, logging.Logger) -> logging.StreamHandler
         """
         Outputs logs matching the given `level` using `formatter` into standard output (console).
 
         :param               int     level:  Logging level for the handler, e.g. logging.INFO. Defaults to self.handler_level
         :param logging.Formatter formatter:  For adjusting the logging format of this handler. Defaults to self.formatter.
+        :param                      stream:  The stream to output the messages to. Use ``sys.stderr`` for stderr printing. (default: ``sys.stdout``)
         :param    logging.Logger    logger:  Optionally, specify a logger instance to add to, instead of self.log
 
         :return        logging.FileHandler:  The newly generated instance of :py:class:`logging.FileHandler`
         """
         log = self.log if logger is None else logger
-        handler = logging.StreamHandler(sys.stdout)
+        handler = logging.StreamHandler(stream)
         handler.setLevel(self.handler_level if level is None else level)
         handler.setFormatter(self.formatter if formatter is None else formatter)
         if logger is None:
             self.handlers.append(
-                ('console', dict(level=level,formatter=formatter),)
+                ('console', dict(level=level,formatter=formatter,stream=stream),)
             )
         log.addHandler(handler)
         return handler

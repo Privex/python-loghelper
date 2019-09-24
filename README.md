@@ -1,5 +1,10 @@
 # Python Log Helper
 
+[![PyPi Version](https://img.shields.io/pypi/v/privex-loghelper.svg)](https://pypi.org/project/privex-loghelper/)
+![License Button](https://img.shields.io/pypi/l/privex-loghelper) ![PyPI - Downloads](https://img.shields.io/pypi/dm/privex-loghelper)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/privex-loghelper) 
+![GitHub last commit](https://img.shields.io/github/last-commit/Privex/python-loghelper)
+
 **Python Log Helper** is a small class designed to simplify the use of the built-in Python Logging Module.
 
 It has no dependencies, and should be compatible with most versions of Python 2.x and 3.x (though we still recommend a minimum of 3.4).
