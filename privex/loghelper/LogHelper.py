@@ -36,6 +36,7 @@ import sys
 import datetime
 import logging
 from logging.handlers import TimedRotatingFileHandler
+from cloghandler import ConcurrentRotatingFileHandler
 
 class LogHelper:
     """
@@ -184,7 +185,7 @@ class LogHelper:
         return handler
 
     def add_timed_file_handler(self, file_location, when='D', interval=1, backups=14, at_time=None,
-                               level=None, formatter=None, logger=None):
+                               level=None, formatter=None, logger=None, concurrent=False):
         # type: (str, str, int, int, datetime.time, int, logging.Formatter, logging.Logger) -> TimedRotatingFileHandler
         """
         Outputs logs matching the given `level` using `formatter` into the file `file_location`. Rotates log every
@@ -207,12 +208,14 @@ class LogHelper:
         :param  int     level:   Logging level for the handler, e.g. logging.INFO. Defaults to self.handler_level
         :param  logging.Formatter formatter:  For adjusting the logging format of this handler. Defaults to self.formatter.
         :param  logging.Logger    logger:     Optionally, specify a logger instance to add to, instead of self.log
+        :param  bool    concurrent:   Optionally use a ConcurrentRotatingLogHandler in place of a TimedRotatingLogHandler
         :return logging.handlers.TimedRotatingFileHandler: The newly generated handler instance
         """
         log = self.log if logger is None else logger
         interval = int(interval)
         backups = int(backups)
-        handler = TimedRotatingFileHandler(
+        fh_class = ConcurrentRotatingFileHandler if concurrent else TimedRotatingFileHandler
+        handler = fh_class(
             file_location, when=when, interval=interval, backupCount=backups, atTime=at_time
         )
 
