@@ -35,8 +35,10 @@ otherwise to promote the sale, use or other dealings in this Software without pr
 import sys
 import datetime
 import logging
+from typing import TextIO
+import warnings
 from logging.handlers import TimedRotatingFileHandler
-from cloghandler import ConcurrentRotatingFileHandler
+
 
 class LogHelper:
     """
@@ -52,7 +54,7 @@ class LogHelper:
     :source:    https://github.com/Privex/python-loghelper
     """
     def __init__(self, logger_name = None, level = logging.DEBUG, handler_level = logging.INFO, formatter = None, clear_handlers=True):
-        # type: (str, int, int, logging.Formatter) -> None
+        # type: (str, int, int, logging.Formatter, bool) -> None
         """
         Initialises the class with sensible default values, including a default formatter, a global log level
         of DEBUG, with a handler default level of INFO.
@@ -186,7 +188,7 @@ class LogHelper:
 
     def add_timed_file_handler(self, file_location, when='D', interval=1, backups=14, at_time=None,
                                level=None, formatter=None, logger=None, concurrent=False):
-        # type: (str, str, int, int, datetime.time, int, logging.Formatter, logging.Logger) -> TimedRotatingFileHandler
+        # type: (str, str, int, int, datetime.time, int, logging.Formatter, logging.Logger, bool) -> TimedRotatingFileHandler|ConcurrentRotatingFileHandler
         """
         Outputs logs matching the given `level` using `formatter` into the file `file_location`. Rotates log every
         x intervals, (`when` sets type, `interval` sets count). Removes logs older than `backups` intervals.
@@ -214,7 +216,16 @@ class LogHelper:
         log = self.log if logger is None else logger
         interval = int(interval)
         backups = int(backups)
-        fh_class = ConcurrentRotatingFileHandler if concurrent else TimedRotatingFileHandler
+        fh_class = TimedRotatingFileHandler
+        if concurrent:
+            try:
+                from cloghandler import ConcurrentRotatingFileHandler
+                fh_class = ConcurrentRotatingFileHandler
+            except (ImportError, Exception):
+                err_txt = "ERROR: You must install ConcurrentLogHandler (or pip3 install 'privex-loghelper[concurrent]') to use the concurrent handler."
+                warnings.warn(err_txt)
+                raise ImportError(err_txt)
+        
         handler = fh_class(
             file_location, when=when, interval=interval, backupCount=backups, atTime=at_time
         )
@@ -232,7 +243,7 @@ class LogHelper:
         return handler
 
     def add_console_handler(self, level=None, formatter=None, stream=sys.stdout, logger=None):
-        # type: (int, logging.Formatter, logging.Logger) -> logging.StreamHandler
+        # type: (int, logging.Formatter, TextIO, logging.Logger) -> logging.StreamHandler
         """
         Outputs logs matching the given `level` using `formatter` into standard output (console).
 

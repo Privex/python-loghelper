@@ -238,6 +238,27 @@ $ cat test.log.2018-12-05_22-59
     2018-12-05 22:59:25,512 root         INFO     hello world 3
 ```
 
+#### Concurrent Log Rotation
+
+For applications with concurrency like those built on modern Django, you may need to use ConcurrentLogHandler for the logs to work correctly,
+if you want to use this, you'll need to install the package with the concurrent extra like so:
+
+```sh
+pip3 install 'privex-loghelper[concurrent]'
+```
+
+Or if this doesn't work, install ConcurrentLogHandler by hand:
+
+```sh
+pip3 install ConcurrentLogHandler
+```
+
+Now you may pass `concurrent=True` to the `add_timed_file_handler` method, to use ConcurrentLogHandler instead of the standard one:
+
+```py
+lh.add_timed_file_handler('test.log', when='M', interval=1, backups=60, concurrent=True)
+```
+
 # Thanks for reading!
 
 **If this project has helped you, consider [grabbing a VPS or Dedicated Server from Privex](https://www.privex.io) - prices start at as little as US$8/mo (we take cryptocurrency!)**
