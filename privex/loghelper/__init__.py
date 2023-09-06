@@ -1,6 +1,6 @@
 from .LogHelper import LogHelper
 name = 'loghelper'
-VERSION = '1.1.1'
+VERSION = '1.1.2'
 
 """
 Copyright 2018     Privex Inc.
