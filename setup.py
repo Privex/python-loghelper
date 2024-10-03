@@ -39,7 +39,7 @@ setup(
     author_email='chris@privex.io',
 
     license='MIT',
-    extras_require=dict(concurrent=["ConcurrentLogHandler"]),
+    extras_require=dict(concurrent=["ConcurrentLogHandler"], concurrent3=["concurrent-log-handler"]),
 
     packages=find_packages(),
     classifiers=[
